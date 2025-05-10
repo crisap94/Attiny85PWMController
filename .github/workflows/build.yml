@@ -1,0 +1,43 @@
+name: Build Firmware
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Cache PlatformIO
+        uses: actions/cache@v3
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-platformio-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-platformio-
+            
+      - name: Install PlatformIO Core
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+          
+      - name: Build Firmware
+        run: |
+          pio run -e attiny85
+          
+      - name: Upload Firmware
+        uses: actions/upload-artifact@v3
+        with:
+          name: firmware
+          path: |
+            .pio/build/attiny85/firmware.hex
+            .pio/build/attiny85/firmware.elf

@@ -5,7 +5,7 @@ This repository contains a firmware for the ATTINY85 microcontroller that implem
 ## Features
 
 - **ADC to PWM Mapping**: Reads analog input from a potentiometer or sensor and maps it to PWM output for LED brightness control. For example, if the ADC reads a value of 512 (midpoint), it translates to a 50% duty cycle on the PWM output, ensuring the LED brightness is proportionally adjusted.
-- **Breathing Effect**: Provides a smooth brightness transition in a breathing pattern lasting 4 seconds per cycle.
+- **Breathing Effect**: Provides a smooth sine-wave brightness transition in a breathing pattern lasting exactly 4 seconds per cycle with improved timing accuracy.
 - **User-Configurable Brightness**: Dynamically adjusts brightness based on the ADC input.
 - **LCD Debugging (Optional)**: Displays real-time information such as ADC values, PWM percentages, elapsed breathing time, and operational mode.
 - **Consistent Timing**: Maintains consistent breathing cycle durations regardless of brightness settings.
@@ -49,8 +49,8 @@ This repository contains a firmware for the ATTINY85 microcontroller that implem
 
 ## How It Works
 
-### Note on PWM Frequency and Smoothing Algorithm
-The smoothing algorithm and sampling interact directly with the PWM frequency to ensure consistent brightness control and breathing effects. A higher PWM frequency (e.g., ~31 kHz) reduces visible flickering in COB LED strips and provides smoother transitions. The sampling and smoothing help maintain stable brightness by averaging ADC values, minimizing noise while responding dynamically to changes.
+### Note on PWM Frequency and Timing Accuracy
+The improved timing algorithm uses a more precise timer configuration to ensure consistent 4-second breathing cycles. A higher PWM frequency (~31 kHz) reduces visible flickering in COB LED strips, while the sine-wave brightness modulation creates more natural transitions than linear fading. The careful timer calculation and microsecond-level timing provide significantly better accuracy compared to older versions.
 
 ### Smoothing Algorithm
 - The ADC readings are processed using a smoothing algorithm:
@@ -67,8 +67,9 @@ The smoothing algorithm and sampling interact directly with the PWM frequency to
    - Brightness is smoothed with a threshold and averaging technique to reduce noise.
 
 2. **Breathing Effect**:
-   - Triggered by setting PB4 to HIGH.
-   - Smoothly transitions brightness from 0 to maximum and back over a 4-second cycle.
+   - Triggered by setting PB4 to HIGH (with proper debouncing for reliability).
+   - Smoothly transitions brightness using a sine-wave pattern for more natural breathing effect.
+   - Accurate 4-second cycle length thanks to improved microsecond-level timing.
    - Automatically reverts to user-configured brightness after 60 seconds.
 
 3. **LCD Debugging**:
@@ -93,7 +94,7 @@ The smoothing algorithm and sampling interact directly with the PWM frequency to
 
 ## Customization
 
-- Adjust `breathingCycleTime` and `breathingDuration` in the code for different breathing timings. Default values: `breathingCycleTime` is set to 4000 ms for a 4-second breathing cycle, and `breathingDuration` is set to 60000 ms for a maximum breathing time of 60 seconds.
+- Adjust `BREATHING_CYCLE_MS` and `breathingDuration` in the code for different breathing timings. Default values: `BREATHING_CYCLE_MS` is set to 4000 ms for a precise 4-second breathing cycle, and `breathingDuration` is set to 60000 ms for a maximum breathing time of 60 seconds.
 - Modify the ADC threshold and smoothing algorithm for varying levels of noise filtering.
 
 ## Tested Configurations
@@ -102,9 +103,22 @@ The smoothing algorithm and sampling interact directly with the PWM frequency to
 - **LCD Display**: 20x4 I2C with address 0x27.
 - **LED Strip**: Monochrome strip driven via a transistor connected to PB1.
 
+## Continuous Integration
+
+This project uses GitHub Actions for continuous integration:
+
+- **Test Workflow**: Automatically runs unit tests when pull requests are opened or code is pushed to master.
+- **Build Workflow**: Builds the firmware and verifies compilation.
+
+You can see the status of these workflows on the GitHub repository's Actions tab.
+
 ## Contributions
 
-Contributions are welcome! Please feel free to open issues or submit pull requests to enhance the project.
+Contributions are welcome! Please feel free to open issues or submit pull requests to enhance the project. When submitting pull requests, please ensure that:
+
+1. All tests pass successfully
+2. New features include appropriate tests
+3. Code follows the existing style and conventions
 
 ## License
 
